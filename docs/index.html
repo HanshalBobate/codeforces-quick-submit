@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Codeforces Quick Submit — One click. No typing.</title>
+<meta name="description" content="A lightweight browser extension that adds a native Quick Submit button to Codeforces problem pages. No tracking, no analytics, no data collection.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FFF7E6;
+    --ink:#121212;
+    --blue:#3772FF;
+    --red:#FF3B30;
+    --yellow:#FFD400;
+    --mint:#00C2A8;
+    --border:4px;
+    --shadow-offset:7px;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+
+  body{
+    margin:0;
+    background:var(--cream);
+    background-image:
+      linear-gradient(var(--ink) 1px, transparent 1px),
+      linear-gradient(90deg, var(--ink) 1px, transparent 1px);
+    background-size:36px 36px;
+    background-position:-1px -1px;
+    background-attachment:fixed;
+    color:var(--ink);
+    font-family:'JetBrains Mono', monospace;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  h1,h2,h3,.display{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    line-height:1.05;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+
+  a{color:var(--ink);}
+
+  :focus-visible{
+    outline:3px solid var(--blue);
+    outline-offset:3px;
+  }
+
+  .wrap{
+    max-width:1080px;
+    margin:0 auto;
+    padding:0 24px;
+  }
+
+  /* ---------- buttons ---------- */
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-family:'JetBrains Mono', monospace;
+    font-weight:800;
+    font-size:0.95rem;
+    text-decoration:none;
+    color:var(--ink);
+    background:#fff;
+    border:var(--border) solid var(--ink);
+    padding:13px 22px;
+    box-shadow:var(--shadow-offset) var(--shadow-offset) 0 var(--ink);
+    transition:transform .12s ease, box-shadow .12s ease;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .btn:hover{
+    transform:translate(-3px,-3px);
+    box-shadow:calc(var(--shadow-offset) + 3px) calc(var(--shadow-offset) + 3px) 0 var(--ink);
+  }
+  .btn:active{
+    transform:translate(0,0);
+    box-shadow:2px 2px 0 var(--ink);
+  }
+  .btn-primary{background:var(--yellow);}
+  .btn-red{background:var(--red); color:#fff;}
+  .btn-sm{padding:9px 16px; font-size:0.8rem; box-shadow:4px 4px 0 var(--ink);}
+  .btn-sm:hover{transform:translate(-2px,-2px); box-shadow:6px 6px 0 var(--ink);}
+
+  /* ---------- nav ---------- */
+  header{
+    border-bottom:var(--border) solid var(--ink);
+    background:var(--cream);
+    position:sticky;
+    top:0;
+    z-index:50;
+  }
+  nav.wrap{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:16px 24px;
+    gap:16px;
+  }
+  .logo{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:1.05rem;
+    text-decoration:none;
+    color:var(--ink);
+  }
+  .logo .mark{
+    background:var(--ink);
+    color:var(--yellow);
+    border:var(--border) solid var(--ink);
+    padding:4px 8px;
+    font-family:'JetBrains Mono',monospace;
+    font-weight:800;
+  }
+  .navlinks{
+    display:flex;
+    gap:26px;
+    font-size:0.85rem;
+    font-weight:700;
+  }
+  .navlinks a{text-decoration:none; border-bottom:3px solid transparent;}
+  .navlinks a:hover{border-bottom:3px solid var(--blue);}
+  .nav-cta{display:flex; align-items:center; gap:12px;}
+
+  @media (max-width:760px){
+    .navlinks{display:none;}
+  }
+
+  /* ---------- hero ---------- */
+  .hero{
+    padding:64px 0 56px;
+  }
+  .hero-grid{
+    display:grid;
+    grid-template-columns:1.1fr 1fr;
+    gap:48px;
+    align-items:center;
+  }
+  @media (max-width:860px){
+    .hero-grid{grid-template-columns:1fr;}
+  }
+  .eyebrow{
+    display:inline-block;
+    background:var(--mint);
+    border:3px solid var(--ink);
+    padding:5px 12px;
+    font-size:0.72rem;
+    font-weight:800;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    margin-bottom:18px;
+    box-shadow:4px 4px 0 var(--ink);
+  }
+  .hero h1{
+    font-size:clamp(2.4rem, 5.5vw, 3.6rem);
+  }
+  .hero h1 span{
+    background:var(--yellow);
+    box-shadow:6px 6px 0 var(--ink);
+    border:3px solid var(--ink);
+    padding:0 8px;
+    display:inline-block;
+  }
+  .hero p.lede{
+    font-size:1.02rem;
+    line-height:1.6;
+    max-width:46ch;
+    margin:22px 0 28px;
+  }
+  .hero-ctas{display:flex; gap:14px; flex-wrap:wrap;}
+
+  .badges{
+    display:flex;
+    gap:8px;
+    margin-top:24px;
+    flex-wrap:wrap;
+  }
+  .badges img{display:block;}
+
+  /* ---------- demo card (signature element) ---------- */
+  .demo{
+    background:#fff;
+    border:var(--border) solid var(--ink);
+    box-shadow:10px 10px 0 var(--ink);
+    overflow:hidden;
+  }
+  .demo-bar{
+    background:var(--ink);
+    color:var(--cream);
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:9px 14px;
+    font-size:0.72rem;
+    font-weight:700;
+  }
+  .demo-bar .dot{width:9px; height:9px; border-radius:50%; background:var(--red);}
+  .demo-bar .dot:nth-child(2){background:var(--yellow);}
+  .demo-bar .dot:nth-child(3){background:var(--mint);}
+  .demo-url{margin-left:8px; opacity:0.85; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .demo-body{padding:22px;}
+  .demo-problem{
+    font-size:0.78rem;
+    color:#555;
+    margin-bottom:6px;
+  }
+  .demo-title{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:1.15rem;
+    margin-bottom:14px;
+  }
+  .demo-btn{
+    width:100%;
+    border:3px solid var(--ink);
+    background:var(--blue);
+    color:#fff;
+    font-family:'JetBrains Mono', monospace;
+    font-weight:800;
+    font-size:0.9rem;
+    padding:13px;
+    box-shadow:5px 5px 0 var(--ink);
+    cursor:pointer;
+    transition:transform .12s ease, box-shadow .12s ease, background .15s ease;
+  }
+  .demo-btn:hover{transform:translate(-2px,-2px); box-shadow:7px 7px 0 var(--ink);}
+  .demo-btn.success{background:var(--mint);}
+  .demo-status{
+    margin-top:14px;
+    font-size:0.78rem;
+    min-height:1.2em;
+    font-weight:700;
+  }
+  .demo-status .fill{color:var(--blue);}
+  .demo-status .done{color:#0a8a72;}
+  .typed-code{
+    display:inline-block;
+    border-bottom:2px solid var(--ink);
+    min-width:14px;
+  }
+
+  /* ---------- sections shared ---------- */
+  section{padding:64px 0;}
+  .section-head{margin-bottom:38px; max-width:60ch;}
+  .section-head .tag{
+    font-size:0.72rem;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:#555;
+    display:block;
+    margin-bottom:10px;
+  }
+  .section-head h2{font-size:clamp(1.7rem,3.6vw,2.3rem);}
+
+  .band{
+    border-top:var(--border) solid var(--ink);
+    border-bottom:var(--border) solid var(--ink);
+    background:var(--ink);
+    color:var(--cream);
+  }
+
+  /* ---------- features ---------- */
+  .feature-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:22px;
+  }
+  @media (max-width:860px){.feature-grid{grid-template-columns:repeat(2,1fr);}}
+  @media (max-width:560px){.feature-grid{grid-template-columns:1fr;}}
+
+  .feature{
+    background:#fff;
+    border:3px solid var(--ink);
+    padding:20px;
+    box-shadow:6px 6px 0 var(--ink);
+    transition:transform .15s ease;
+  }
+  .feature:nth-child(2){transform:rotate(-0.6deg);}
+  .feature:nth-child(4){transform:rotate(0.6deg);}
+  .feature:nth-child(6){transform:rotate(-0.4deg);}
+  .feature:hover{transform:translateY(-4px);}
+  .feature .icon{
+    width:38px; height:38px;
+    border:3px solid var(--ink);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:800;
+    margin-bottom:14px;
+  }
+  .feature h3{font-size:1rem; margin-bottom:8px;}
+  .feature p{font-size:0.85rem; line-height:1.55; margin:0; color:#333;}
+
+  .icon.blue{background:var(--blue); color:#fff;}
+  .icon.red{background:var(--red); color:#fff;}
+  .icon.yellow{background:var(--yellow);}
+  .icon.mint{background:var(--mint);}
+
+  /* ---------- how it works ---------- */
+  .steps{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:22px;
+  }
+  @media (max-width:860px){.steps{grid-template-columns:1fr;}}
+  .step{
+    border:3px solid var(--cream);
+    padding:22px;
+    position:relative;
+  }
+  .step .num{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:2.2rem;
+    color:var(--yellow);
+    line-height:1;
+    margin-bottom:10px;
+  }
+  .step h3{color:var(--cream); font-size:1rem; margin-bottom:8px;}
+  .step p{color:#cfcfcf; font-size:0.85rem; line-height:1.55; margin:0;}
+  .step code{
+    background:#222;
+    color:var(--mint);
+    padding:2px 6px;
+    font-size:0.82rem;
+  }
+  @media (min-width:861px){
+    .step:not(:last-child)::after{
+      content:"→";
+      position:absolute;
+      right:-30px;
+      top:24px;
+      color:var(--yellow);
+      font-size:1.4rem;
+    }
+  }
+
+  /* ---------- privacy ---------- */
+  .privacy-row{
+    display:flex;
+    gap:18px;
+    flex-wrap:wrap;
+  }
+  .privacy-pill{
+    background:#fff;
+    border:3px solid var(--ink);
+    padding:14px 18px;
+    font-weight:800;
+    font-size:0.85rem;
+    box-shadow:5px 5px 0 var(--ink);
+    flex:1 1 200px;
+    text-align:center;
+  }
+
+  /* ---------- install ---------- */
+  .install-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:30px;
+  }
+  @media (max-width:760px){.install-grid{grid-template-columns:1fr;}}
+  .terminal{
+    background:var(--ink);
+    border:3px solid var(--ink);
+    box-shadow:8px 8px 0 var(--red);
+    color:var(--mint);
+    font-size:0.85rem;
+    padding:18px;
+    line-height:1.7;
+  }
+  .terminal .line{color:#e9e6da;}
+  .terminal .comment{color:#888;}
+  .terminal .prompt{color:var(--yellow);}
+  ol.install-steps{
+    margin:0;
+    padding-left:1.3em;
+    font-size:0.92rem;
+    line-height:2;
+  }
+  ol.install-steps li::marker{font-weight:800; color:var(--red);}
+
+  /* ---------- footer ---------- */
+  footer{
+    border-top:var(--border) solid var(--ink);
+    padding:40px 0 50px;
+  }
+  .footer-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:18px;
+  }
+  .footer-left p{margin:0; font-size:0.85rem;}
+  .footer-left .name{font-weight:800;}
+  .footer-links{display:flex; gap:18px; font-size:0.85rem; font-weight:700;}
+  .footer-links a{text-decoration:none; border-bottom:2px solid var(--ink);}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important; scroll-behavior:auto !important;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <nav class="wrap">
+    <a href="#top" class="logo"><span class="mark">&lt;/&gt;</span> CF QUICK SUBMIT</a>
+    <div class="navlinks">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#install">Install</a>
+      <a href="#privacy">Privacy</a>
+    </div>
+    <div class="nav-cta">
+      <a class="btn btn-sm" href="https://github.com/HanshalBobate/codeforces-quick-submit" target="_blank" rel="noopener">★ GitHub</a>
+    </div>
+  </nav>
+</header>
+
+<main id="top">
+
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <span class="eyebrow">Browser extension · MIT licensed</span>
+        <h1>Quick submit.<br><span>No retyping.</span></h1>
+        <p class="lede">Codeforces Quick Submit drops a native submit button right on the problem page. It reads the problem code for you and opens a pre-filled submission form — Problemset, Contest, or Gym.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="https://github.com/HanshalBobate/codeforces-quick-submit" target="_blank" rel="noopener">View on GitHub</a>
+          <a class="btn btn-red" href="https://github.com/HanshalBobate/codeforces-quick-submit/releases" target="_blank" rel="noopener">Download v1.0.0</a>
+        </div>
+        <div class="badges">
+          <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT">
+          <img src="https://img.shields.io/badge/JavaScript-ES6-yellow.svg" alt="JavaScript ES6">
+          <img src="https://img.shields.io/badge/Codeforces-Supported-blue.svg" alt="Codeforces Supported">
+        </div>
+      </div>
+
+      <div>
+        <div class="demo">
+          <div class="demo-bar">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            <span class="demo-url">codeforces.com/problemset/problem/977/A</span>
+          </div>
+          <div class="demo-body">
+            <div class="demo-problem">PROBLEM 977A</div>
+            <div class="demo-title">Wrong Subtraction</div>
+            <button class="demo-btn" id="demoBtn" type="button">⚡ Quick Submit</button>
+            <div class="demo-status" id="demoStatus">Click the button to see it work.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="features">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="tag">What it does</span>
+        <h2>Every click it removes from your submit flow.</h2>
+      </div>
+      <div class="feature-grid">
+        <div class="feature">
+          <div class="icon blue">1</div>
+          <h3>One-click submission</h3>
+          <p>A submit button sits right next to the problem statement. No detour through the menu.</p>
+        </div>
+        <div class="feature">
+          <div class="icon red">#</div>
+          <h3>Auto-detected problem codes</h3>
+          <p>Reads the contest and index straight from the URL, so you never type "977A" by hand.</p>
+        </div>
+        <div class="feature">
+          <div class="icon yellow">✓</div>
+          <h3>Auto-filled form</h3>
+          <p>Opens the submission page with the problem already selected, ready for your source.</p>
+        </div>
+        <div class="feature">
+          <div class="icon mint">⌂</div>
+          <h3>Native styling</h3>
+          <p>Looks and feels like a part of Codeforces, not a bolted-on toolbar.</p>
+        </div>
+        <div class="feature">
+          <div class="icon blue">⊞</div>
+          <h3>Problemset, Contest &amp; Gym</h3>
+          <p>Works across all three problem types, with no separate setup for each.</p>
+        </div>
+        <div class="feature">
+          <div class="icon red">∅</div>
+          <h3>Nothing leaves your browser</h3>
+          <p>No tracking, no analytics, no data collection. The extension runs entirely locally.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="how">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="tag" style="color:#aaa;">From problem to submission</span>
+        <h2 style="color:var(--cream);">How it works</h2>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="num">01</div>
+          <h3>Open a problem</h3>
+          <p>Visit any page like <code>/problemset/problem/977/A</code>.</p>
+        </div>
+        <div class="step">
+          <div class="num">02</div>
+          <h3>Click Quick Submit</h3>
+          <p>The button appears natively on the problem page itself.</p>
+        </div>
+        <div class="step">
+          <div class="num">03</div>
+          <h3>Form is pre-filled</h3>
+          <p>The submission page opens with <code>977A</code> already selected.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="privacy">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="tag">Privacy</span>
+        <h2>Runs locally. Stays locally.</h2>
+      </div>
+      <div class="privacy-row">
+        <div class="privacy-pill">🚫 No tracking</div>
+        <div class="privacy-pill">🚫 No analytics</div>
+        <div class="privacy-pill">🚫 No data collection</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="install">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="tag">Get it running</span>
+        <h2>Install in under a minute</h2>
+      </div>
+      <div class="install-grid">
+        <div>
+          <ol class="install-steps">
+            <li>Download this repository</li>
+            <li>Extract the ZIP</li>
+            <li>Open your extensions page</li>
+            <li>Turn on Developer Mode</li>
+            <li>Click <strong>Load Unpacked</strong></li>
+            <li>Select the project folder</li>
+          </ol>
+        </div>
+        <div class="terminal">
+          <div class="comment"># Brave</div>
+          <div class="line"><span class="prompt">→</span> brave://extensions</div>
+          <br>
+          <div class="comment"># Chrome</div>
+          <div class="line"><span class="prompt">→</span> chrome://extensions</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap footer-row">
+    <div class="footer-left">
+      <p>Built by <span class="name">Hanshal Bobate</span> · MIT License</p>
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com/HanshalBobate/codeforces-quick-submit" target="_blank" rel="noopener">Repository</a>
+      <a href="https://github.com/HanshalBobate/codeforces-quick-submit/issues" target="_blank" rel="noopener">Issues</a>
+      <a href="https://github.com/HanshalBobate/codeforces-quick-submit/blob/main/LICENSE" target="_blank" rel="noopener">License</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const btn = document.getElementById('demoBtn');
+  const status = document.getElementById('demoStatus');
+  let running = false;
+
+  btn.addEventListener('click', () => {
+    if (running) return;
+    running = true;
+    btn.classList.remove('success');
+    status.innerHTML = 'Detecting problem code<span class="fill">…</span>';
+
+    setTimeout(() => {
+      status.innerHTML = 'Found code: <span class="typed-code fill">977A</span>';
+    }, 450);
+
+    setTimeout(() => {
+      status.innerHTML = 'Opening submission form, filling <span class="typed-code fill">977A</span>…';
+    }, 950);
+
+    setTimeout(() => {
+      btn.classList.add('success');
+      btn.textContent = '✓ Submitted form ready';
+      status.innerHTML = '<span class="done">Done — source code box is focused.</span>';
+    }, 1500);
+
+    setTimeout(() => {
+      btn.classList.remove('success');
+      btn.textContent = '⚡ Quick Submit';
+      status.textContent = 'Click the button to see it work.';
+      running = false;
+    }, 3400);
+  });
+</script>
+
+</body>
+</html>
